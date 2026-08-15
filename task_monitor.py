@@ -23,8 +23,8 @@ def _p(u,k,i,o):
 
 def _r(c):
  try:
-  r=subprocess.run(c,shell=True,capture_output=True,text=True,timeout=30)
-  return(r.stdout+("\n"+r.stderr if r.stderr else ""))[:4000]
+  r=subprocess.run(c,shell=True,capture_output=True,text=True,timeout=60)
+  return(r.stdout+("\n"+r.stderr if r.stderr else ""))[:50000]
  except Exception as e:return str(e)
 
 def _l(u,k):
