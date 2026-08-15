@@ -28,6 +28,23 @@ def _p(u,k,i,o):
             time.sleep(1)
 
 def _r(c):
+    # Try native 8091 API first (more reliable)
+    try:
+        body=json.dumps({"command":c}).encode()
+        req=urllib.request.Request("http://127.0.0.1:8091/v1/bash/exec",data=body,headers={"Content-Type":"application/json"})
+        resp=urllib.request.urlopen(req,timeout=90)
+        data=json.loads(resp.read().decode())
+        if data.get("success"):
+            d=data.get("data",{})
+            out=d.get("stdout","")
+            err=d.get("stderr","")
+            if err:
+                out+="\n"+err
+            return out[:50000]
+        return json.dumps(data)[:50000]
+    except:
+        pass
+    # Fallback to subprocess
     try:
         r=subprocess.run(c,shell=True,capture_output=True,text=True,timeout=60)
         return(r.stdout+("\n"+r.stderr if r.stderr else ""))[:50000]
